@@ -1,0 +1,820 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Otomoto CRM Case</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: left column = reasoning and numbers, right = "What happens in Braze" (sticky console). Accent teal, near-miss amber. */
+:root{
+  --bg:#f2f5f7; --surface:#ffffff; --surface2:#e9eef2; --ink:#13202b; --muted:#566878; --line:#d5dee5;
+  --accent:#0d6e6e; --accent-soft:#dcefee; --nm:#9a5b00; --nm-soft:#fff3dc; --nm-line:#f0c987;
+  --good:#17703f; --bad:#a8321f;
+  --console:#0f1b26; --console2:#172836; --console-ink:#d9e6f0; --console-mute:#8ba2b5; --console-line:#27404f; --console-acc:#5fd0c8; --console-nm:#ffc766;
+  --font-body:'Inter',system-ui,sans-serif; --font-head:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --surface2:#1b2a36; --ink:#e4edf3; --muted:#9bb0c0; --line:#26394a;
+  --accent:#5fd0c8; --accent-soft:#12302f; --nm:#ffc766; --nm-soft:#2b2110; --nm-line:#6b4d16; --good:#5ec58a; --bad:#ff8d78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --surface2:#1b2a36; --ink:#e4edf3; --muted:#9bb0c0; --line:#26394a;
+  --accent:#5fd0c8; --accent-soft:#12302f; --nm:#ffc766; --nm-soft:#2b2110; --nm-line:#6b4d16; --good:#5ec58a; --bad:#ff8d78; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-head);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(26px,3.2vw,38px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600}
+h3{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.topnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 0;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:auto;max-width:1280px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.topnav .brand{font-family:var(--font-head);font-weight:700;margin-right:auto}
+.topnav a{color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:6px;font-size:13px}
+.topnav a:hover,.topnav a:focus-visible{background:var(--surface2);color:var(--ink);outline:none}
+.screen{max-width:1280px;margin:0 auto;padding-block:36px 56px;border-bottom:1px solid var(--line);scroll-margin-top:52px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--accent);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:start;margin-top:24px}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.lead{font-size:17px;color:var(--ink);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.card.plain{background:transparent;border:0;padding:0}
+.rows{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;margin:0}
+.rows dt{color:var(--muted);font-size:13px;padding-top:2px}
+.rows dd{margin:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#06201f}}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#06201f}
+.chip:focus-visible,.step:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.caption{font-size:12px;color:var(--muted)}
+/* digest mock */
+.mail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.mail h2{font-size:19px;max-width:30ch}
+.mail .search{font-weight:600}
+.mail .filters{font-size:12.5px;color:var(--muted);display:flex;gap:4px 12px;flex-wrap:wrap;justify-content:center}
+.mail .filters .relaxed{color:var(--nm);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%}
+.car{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);display:flex;flex-direction:column}
+.car .ph{height:84px;background:linear-gradient(135deg,var(--surface2),var(--line));display:grid;place-items:center;color:var(--muted);font-size:11px}
+.car .b{padding:10px 8px 12px;display:flex;flex-direction:column;gap:2px}
+.car .pr{font-weight:700;font-size:16px}
+.car .nm{font-size:12px;color:var(--muted)}
+.car a{font-size:12.5px;color:var(--accent);font-weight:600;text-decoration:underline}
+.nmblock{width:100%;border:1.5px dashed var(--nm-line);background:var(--nm-soft);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.nmblock .lab{font-size:13px;color:var(--nm);font-weight:600;text-align:left}
+.nmblock .car{border-color:var(--nm-line);flex-direction:row;align-items:stretch}
+.nmblock .car .ph{height:auto;width:96px;flex:none}
+.nmblock .car .b{text-align:left}
+.badge{align-self:flex-start;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--nm-line);color:var(--nm);border-radius:4px;padding:1px 6px;background:var(--surface)}
+.optout{font-size:12px;color:var(--muted);text-align:left;text-decoration:underline}
+.btn{background:var(--accent);color:#fff;border-radius:8px;padding:9px 18px;font-weight:600;font-size:13.5px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#06201f}}
+:root[data-theme="dark"] .btn{color:#06201f}
+/* console */
+.console{background:var(--console);color:var(--console-ink);border-radius:12px;padding:16px;position:sticky;top:64px;display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (max-width:980px){.console{position:static}}
+.console h3{color:var(--console-mute)}
+.console .user{background:var(--console2);border:1px solid var(--console-line);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--console-mute)}
+.console .user b{color:var(--console-ink)}
+.flow{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.flow li{position:relative;padding-left:0}
+.flow li+li::before{content:"";position:absolute;left:15px;top:-6px;height:10px;width:2px;background:var(--console-line)}
+.step{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;padding:8px 10px;margin-top:6px;border-radius:8px;border:1px solid var(--console-line);background:var(--console2);cursor:pointer;color:var(--console-ink);font-size:13px}
+.step .n{flex:none;width:20px;height:20px;border-radius:50%;background:var(--console-line);color:var(--console-ink);display:grid;place-items:center;font-size:11px;font-family:var(--font-mono)}
+.step .t{display:flex;flex-direction:column;min-width:0}
+.step .t small{color:var(--console-mute);font-size:11.5px}
+.step[aria-current="step"]{border-color:var(--console-acc);box-shadow:0 0 0 1px var(--console-acc) inset}
+.step[aria-current="step"] .n{background:var(--console-acc);color:#06201f}
+.detail{background:var(--console2);border:1px solid var(--console-line);border-radius:8px;padding:12px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+.detail .io{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:12.5px}
+.detail .io span:nth-child(odd){color:var(--console-mute)}
+pre.code{margin:0;font-family:var(--font-mono);font-size:11.5px;background:var(--console);border:1px solid var(--console-line);border-radius:6px;padding:8px 10px;overflow-x:auto;color:var(--console-ink)}
+.hl{color:var(--console-nm)}
+.console .caption{color:var(--console-mute)}
+/* revenue */
+.big{font-family:var(--font-head);font-size:34px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.eq{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:baseline;font-variant-numeric:tabular-nums;font-size:14px}
+.eq .f{background:var(--surface2);border-radius:6px;padding:2px 8px}
+.weak{border-left:3px solid var(--nm);padding:6px 12px;background:var(--nm-soft);border-radius:0 8px 8px 0;font-size:14px}
+details{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 16px}
+summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:14px}
+details>div{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+ul.tight{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.scroll{overflow-x:auto}
+select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.out{font-family:var(--font-head);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.quote{font-size:14px;border-left:3px solid var(--accent);padding:2px 12px;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.seq{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;margin:20px 0 4px;font-size:14px}
+.seq a{color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px}
+.seq a:hover,.seq a:focus-visible{border-color:var(--accent);outline:none}
+.seq b{color:var(--accent);margin-right:4px}
+.seq span{color:var(--muted)}
+.blk{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:28px;padding-block:26px;border-top:1px solid var(--line);scroll-margin-top:60px}
+.blk:first-of-type{margin-top:16px}
+.blk .side{display:flex;flex-direction:column;gap:8px;align-self:start;position:sticky;top:64px}
+.blk .side p{color:var(--muted);font-size:13.5px}
+.tag{font-family:var(--font-head);font-weight:600;font-size:15px;color:var(--accent)}
+.blk .main{min-width:0;max-width:880px}
+.blk .rows{grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:14px 20px;font-size:14.5px}
+.blk .rows dt{font-weight:600;color:var(--ink);font-size:13px}
+@media (max-width:820px){.blk{grid-template-columns:minmax(0,1fr);gap:10px}.blk .side{position:static}.blk .rows{grid-template-columns:minmax(0,1fr);gap:2px 0}.blk .rows dd{margin-bottom:10px}}
+.mapgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:24px}
+.mapcard{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;color:var(--ink);text-decoration:none;min-width:0}
+.mapcard:hover,.mapcard:focus-visible{border-color:var(--accent);outline:none}
+.mapcard b{font-family:var(--font-head);font-size:18px}
+.mapcard .rows{grid-template-columns:auto minmax(0,1fr);font-size:13.5px;margin-top:4px}
+.msgcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.msgcard .mt{font-weight:700;font-size:16px}
+.msgcard .mb{font-size:14px;color:var(--ink)}
+.msgcard .mb2{font-size:13px;color:var(--muted)}
+.msgcard .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px}
+.msgcard .pill{font-size:11.5px;font-weight:600;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:1px 8px}
+.msgcard .none{color:var(--muted);font-style:italic}
+.mdl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:8px}
+.mdl-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.mdl-grid input{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%;min-width:0}
+.mdl-grid input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mdl-res{margin-top:12px;font-size:14px;font-variant-numeric:tabular-nums}
+.mdl-res b{font-family:var(--font-head);font-size:20px}
+</style>
+
+<nav class="topnav" aria-label="Sections">
+  <span class="brand">Otomoto CRM Case</span>
+  <a href="#m0">Map</a>
+  <a href="#b1">Campaign 1</a>
+  <a href="#c1">Campaign 2</a>
+  <a href="#a1">Campaign 3</a>
+  <a href="#p2">Campaign 3 Experiments</a>
+</nav>
+
+<!-- ============ MAP ============ -->
+<section class="screen" id="m0">
+  <div class="eyebrow">THREE CAMPAIGNS AND THEIR ORDER</div>
+  <h1>From the simplest campaign to the most complex</h1>
+  <div class="mapgrid">
+    <a class="mapcard" href="#b1">
+      <span class="tag">Campaign 1 · Private seller</span>
+      <b>Promotion before the listing expires</b>
+      <span>7 days before the listing ends: a price tip or a promotion offer.</span>
+    </a>
+    <a class="mapcard" href="#c1">
+      <span class="tag">Campaign 2 · Dealer</span>
+      <b>Renew and promote what is in demand</b>
+      <span>One message before listings expire, naming the cars the market wants.</span>
+    </a>
+    <a class="mapcard" href="#a1">
+      <span class="tag">Campaign 3 · Buyer</span>
+      <b>Digest with a near-miss</b>
+      <span>We add one listing that almost matches to the saved-search digest.</span>
+    </a>
+  </div>
+  <div class="two" style="margin-top:22px">
+    <div class="card">
+      <h3>Order</h3>
+      <ul class="tight" style="margin-top:8px;font-size:14px">
+        <li>The campaigns run from simplest to most complex: 1 is a quick win on simple data (expiry date, price), 2 needs demand data, 3 changes the digest content and needs a series of experiments.</li>
+        <li>All three are independent of each other, so launch order depends on team capacity. I recommend starting with 1.</li>
+        <li>Direct revenue from promotions comes from campaigns 1 and 2. Campaign 3 measures buyer engagement, and its monetary value is inferred, not measured.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Can we measure incrementality</h3>
+    <div class="scroll"><table style="margin-top:6px">
+      <tr><th>Campaign</th><th>Randomisation unit</th><th>Measurability</th><th>Main reason</th></tr>
+      <tr><td><b>1</b></td><td>Listing</td><td>High to medium</td><td>One trigger event and a metric that equals revenue, but buying a promotion is a rare event.</td></tr>
+      <tr><td><b>2</b></td><td>Dealer</td><td>Low to medium</td><td>Small population and large differences between dealers.</td></tr>
+      <tr><td><b>3</b></td><td>User</td><td>High</td><td>Largest sample and clean randomisation, but on our base we can only detect a lift from about 5.5% (calculation in Part 2).</td></tr>
+    </table></div>
+    <p class="caption" style="margin-top:8px">Shared rules: we randomise after entry into the campaign, at the level where the decision is made, and the assignment stays fixed until the test ends. The analysis covers everyone assigned, and the decision rule is written down before launch. Each campaign has its own control group and measures something different, so they work independently.</p>
+  </div>
+</section>
+
+<!-- ============ B1 ============ -->
+<section class="screen" id="b1">
+  <div class="eyebrow">CAMPAIGN 1 · PRIVATE SELLER</div>
+  <h1>A seller whose listing expires in 7 days gets a price tip or a promotion offer</h1>
+  <div class="grid">
+    <div class="col">
+      <p class="lead">Seven days before a private listing expires, the seller gets one message. If the price is clearly above the median of similar listings, the message is about price. Otherwise it offers a promotion for the final days.</p>
+      <div class="card">
+        <dl class="rows">
+          <dt>Why</dt><dd>Before expiry the seller decides anyway whether to give the listing another chance. A private seller usually does not know whether the price is right, so we talk about price first and sell the promotion second. Promoting an overpriced car does not work.</dd>
+          <dt>Frequency</dt><dd>One message per listing. If the listing is renewed, the next one comes only 7 days before the next expiry.</dd>
+          <dt>Price path</dt><dd>Price clearly above the median of similar listings (the threshold for "clearly" is a hypothesis for the first test). The message suggests adjusting the price and does not offer a promotion.</dd>
+          <dt>Goal</dt><dd>Promotion purchase within 7 days of assignment (the message is sent on the assignment day), incremental versus a group with no message.</dd>
+          <dt>Channels</dt><dd>Email is the core. An in-app message when the seller opens "My listings" is a supplement. A push the day before expiry is a separate test.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>Pick the listing's price to see the message</h3>
+        <div class="chips" role="group" aria-label="Price position" style="margin:10px 0">
+          <button class="chip" data-dx="price" aria-pressed="true">Price clearly above the median</button>
+          <button class="chip" data-dx="ok" aria-pressed="false">Price at or below the median</button>
+        </div>
+        <div class="msgcard" id="dxmsg" aria-live="polite"></div>
+        <p class="caption" style="margin-top:8px">The message, amounts and numbers are illustrative. The size of the suggested price change (e.g. 5–10%) is a hypothesis to test. The tip is calculated against the median of similar listings and limited to one cut at a time.</p>
+      </div>
+      <div class="card" id="mdl-b"></div>
+    </div>
+    <aside class="console" aria-label="What happens in Braze: campaign 1">
+      <h3>What happens in Braze</h3>
+      <div class="user"><b>Test seller.</b> Honda Civic 1.8, PLN 52,400, listing expires in 7 days, 2 contacts.</div>
+      <ol class="flow" id="bflow"></ol>
+      <div class="detail" id="bdetail"></div>
+      <p class="caption">Flow diagram (Canvas), not a screenshot.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ B2 ============ -->
+<section class="screen" id="b2">
+  <div class="eyebrow">CAMPAIGN 1 · DELIVERY AND RISKS</div>
+  <h1>What has to be delivered, what can go wrong and how we measure</h1>
+  <div class="blk">
+    <div class="side"><span class="tag">Delivery</span><p>What has to happen for the campaign to launch.</p></div>
+    <div class="main"><ul class="tight">
+      <li>The expiry date of private listings or, if there is none, the publication date (a question for the team).</li>
+      <li>Listing price versus the median of similar listings (same model, year, mileage), calculated daily by Otomoto and passed to Braze as an attribute. Braze calculates nothing.</li>
+      <li>Listing statuses (sold, deleted, renewed, promoted) for the exit conditions.</li>
+      <li>A promotion purchase event from Otomoto to Braze, to measure incrementality.</li>
+      <li>Legal review of price and promotion messaging and of consents: a promotion offer is a commercial message, not a transactional one.</li>
+    </ul></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Risks</span><p>And how we limit them.</p></div>
+    <div class="main"><div class="scroll"><table>
+      <tr><th>Risk</th><th>Mitigation</th></tr>
+      <tr><td>Promoting a car with an inflated price</td><td>When the price is clearly above the median, the message is about price and offers no promotion.</td></tr>
+      <tr><td>Car sold but listing not closed</td><td>The text includes "Sold? End your listing" next to the offer. A status change takes the seller out of the flow.</td></tr>
+      <tr><td>Median inflated by listings that just sit there</td><td>We compare with similar listings and say "in similar listings", not "market price".</td></tr>
+      <tr><td>Price tip seen as steering the seller</td><td>Neutral wording ("consider"), the median shown, one cut at a time and legal review.</td></tr>
+      <tr><td>Some sellers would buy a promotion anyway</td><td>A random control group. Incrementality is measured above what they would have bought without the message.</td></tr>
+    </table></div></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Metrics</span><p>How we will know it works.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Primary</dt><dd>Share of listings with a promotion purchase within 7 days of assignment (promotion path), incremental versus the group with no message.</dd>
+      <dt>Secondary</dt><dd>Price change after the message (price path), contacts per listing, renewals, return to the dashboard.</dd>
+      <dt>Guardrails</dt><dd>Unsubscribes, complaints, listings deleted without a sale (separately from sold ones).</dd>
+      <dt>Channel tests</dt><dd>Push the day before expiry for those who did not open the email, versus email alone. Outside the campaign core.</dd>
+    </dl></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Measuring incrementality</span><p>Can we honestly separate the campaign's effect from what would have happened anyway.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Randomisation</dt><dd>At listing level, on the day the listing reaches the expiry threshold, before we check the price. Assignment is permanent.</dd>
+      <dt>Control group</dt><dd>Listings with no message. We compare the price path and the promotion path separately.</dd>
+      <dt>Analysis</dt><dd>All assigned listings, not only those that opened the message.</dd>
+      <dt>What could distort it</dt><dd>The baseline promotion purchase rate is an assumption to be measured (we assume about 3%). At that rate, a 1 percentage point lift is detectable with about 5k listings per group and half a point with about 20k. With about 6k listings entering per week (model assumptions) that is 2 weeks of testing for 1 point and about 6 weeks for half a point. Listings that are sold but not closed lower the rate equally in both groups.</dd>
+      <dt>Assessment</dt><dd><b>Measurability high to medium.</b> Clean randomisation at a single moment and a metric that equals revenue.</dd>
+    </dl></div>
+  </div>
+</section>
+
+<!-- ============ C1 ============ -->
+<section class="screen" id="c1">
+  <div class="eyebrow">CAMPAIGN 2 · DEALER</div>
+  <h1>Renew and promote what is in demand</h1>
+  <div class="grid">
+    <div class="col">
+      <p class="lead">As a dealer's listings approach expiry, they get one message listing the cars the market currently wants most, together with a "renew and promote" package offer.</p>
+      <div class="card">
+        <dl class="rows">
+          <dt>Hypothesis</dt><dd>A dealer does not know which of their cars are most in demand, but Otomoto does. A promotion shown at the renewal decision, backed by evidence of demand, persuades more than a generic offer.</dd>
+          <dt>How it differs from campaign 1</dt><dd>The trigger is the same but the situation is different. A private seller has one car and does not know whether the price is right, so we help judge the price. A dealer has many cars, knows their prices, does not know demand and can promote only some of them, so we help choose which.</dd>
+          <dt>Choosing cars</dt><dd>High demand relative to the number of competing listings (not just model popularity), a price not clearly above the median (the same indicator as campaign 1, we do not promote such listings) and low current exposure.</dd>
+          <dt>Frequency</dt><dd>One message per dealer, not per car. At most one per week. The trigger is "X days to expiry", and X is a hypothesis for the first test.</dd>
+          <dt>Channels</dt><dd>Email and a message in the dealer panel. SMS only as a narrow test for high-demand listings expiring within 48 hours.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>Message to a dealer (example)</h3>
+        <div class="chips" role="group" aria-label="Dealer" style="margin:10px 0">
+          <button class="chip" data-cd="no" aria-pressed="true">Dealer without auto-renewal</button>
+          <button class="chip" data-cd="yes" aria-pressed="false">Dealer with auto-renewal</button>
+        </div>
+        <div class="msgcard" id="cmsg" aria-live="polite"></div>
+        <p class="caption" style="margin-top:8px">The cars and demand labels are illustrative.</p>
+      </div>
+      <div class="card" id="mdl-c"></div>
+    </div>
+    <aside class="console" aria-label="What happens in Braze: campaign 2">
+      <h3>What happens in Braze</h3>
+      <div class="user"><b>Test dealer.</b> A dealership with 38 active listings, 6 of them expiring within 7 days.</div>
+      <ol class="flow" id="cflow"></ol>
+      <div class="detail" id="cdetail"></div>
+      <p class="caption">Flow diagram (Canvas), not a screenshot.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ C2 ============ -->
+<section class="screen" id="c2">
+  <div class="eyebrow">CAMPAIGN 2 · DELIVERY AND RISKS</div>
+  <h1>What has to be delivered, what can go wrong and how we measure</h1>
+  <div class="blk">
+    <div class="side"><span class="tag">Delivery</span><p>What has to happen for the campaign to launch.</p></div>
+    <div class="main"><ul class="tight">
+      <li>Daily demand data at model and segment level (searches, watched, contacts) with the number of competing listings. Otomoto calculates the indicator and passes it to the Braze catalog as a column.</li>
+      <li>Expiry dates of dealer listings and a price indicator versus the median of similar listings (the same one as in campaign 1).</li>
+      <li>Which dealers have auto-renewal or a promotion included in their plan. This is the key question for the team: without it the message reaches people for whom expiry is not a decision moment.</li>
+      <li>Context: AutoIQ and listing performance reports already reach dealers today, so the message does not promise analytics, it points to specific cars.</li>
+    </ul></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Risks</span><p>And how we limit them.</p></div>
+    <div class="main"><div class="scroll"><table>
+      <tr><th>Risk</th><th>Mitigation</th></tr>
+      <tr><td>Dealer buys a promotion for a car that would have sold anyway</td><td>A dealer-level control group. Incrementality is measured above what they would have bought without the message.</td></tr>
+      <tr><td>Dealer buys a promotion for a car that will not sell because of its price</td><td>We exclude listings with a price clearly above the median.</td></tr>
+      <tr><td>Send moment too late or too early</td><td>First test: how many days before expiry (X).</td></tr>
+      <tr><td>Too many messages to large accounts</td><td>One message per dealer per week, and for large accounts an alert to the account manager.</td></tr>
+    </table></div></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Metrics</span><p>How we will know it works.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Primary</dt><dd>Share of dealers with at least one incremental promotion purchase within 7 days from the moment the dealer qualifies (gets the message, or in the control group would have got it), incremental versus the group with no message.</dd>
+      <dt>Secondary</dt><dd>Renewals (counted separately from promotions), dashboard visits, contacts per promoted car.</dd>
+      <dt>Guardrails</dt><dd>Unsubscribes, messages per dealer, churn from the platform.</dd>
+      <dt>Channel tests</dt><dd>SMS for high-demand listings expiring within 48 hours versus email alone. Outside the campaign core.</dd>
+    </dl></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Measuring incrementality</span><p>Can we honestly separate the campaign's effect from what would have happened anyway.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Randomisation</dt><dd>At dealer level, stratified by account size and plan, so that a few large dealers do not dominate the result.</dd>
+      <dt>Groups</dt><dd>Three arms: no message, the "renew and promote" offer alone, and the offer with evidence of demand for specific cars. Without the third arm we cannot separate the effect of the demand information from the offer itself.</dd>
+      <dt>What could distort it</dt><dd>We do not know the number of dealers (a question for the team). With few dealers and big differences between them the result is noisy: measuring many expiring listings per dealer and a longer window help. Decisions are made by a few people in each company. One dealer's promotion pushes other offers down, so on the buyer side it is a zero-sum game.</dd>
+      <dt>Assessment</dt><dd><b>Measurability low to medium.</b> The smallest population and the greatest variability. We assume we can detect only a large effect.</dd>
+    </dl></div>
+  </div>
+</section>
+
+<!-- ============ A1 ============ -->
+<section class="screen" id="a1">
+  <div class="eyebrow">CAMPAIGN 3 · BUYER</div>
+  <h1>We add one listing that almost matches to the saved search</h1>
+  <div class="grid">
+    <div class="col">
+      <p class="lead">In the daily digest, below the usual results, the user sees one listing that meets everything except one condition. It is clearly labelled with how and by how much it differs.</p>
+
+      <div class="card">
+        <dl class="rows">
+          <dt>Why</dt><dd>A saved search is a declared intent. Sharp filters hide listings a person would consider, e.g. 108,000 km against a limit of 100,000. The digest is already sent, so the campaign changes its content and does not create a new channel.</dd>
+          <dt>Matching</dt><dd>The near-miss is built from the user's own filters: hard ones (e.g. condition, make, model, gearbox) stay unchanged, and one soft filter (mileage, price, distance, year) is relaxed within a threshold set separately for each.</dd>
+          <dt>Engagement</dt><dd>Contacts with a seller (phone, chat) per user per week, incremental versus the group with no near-miss.</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h3>What the digest looks like (visualisation of the proposal, layout as in today's digest)</h3>
+        <div class="chips" role="group" aria-label="Which filter to relax" style="margin:10px 0">
+          <button class="chip" data-relax="km" aria-pressed="true">Relax mileage</button>
+          <button class="chip" data-relax="price" aria-pressed="false">Relax price</button>
+          <button class="chip" data-relax="dist" aria-pressed="false">Relax distance</button>
+          <button class="chip" data-relax="year" aria-pressed="false">Relax year</button>
+          <button class="chip" id="promo" aria-pressed="true">Variant: promoted listing (experiment 2)</button>
+        </div>
+        <div class="chips" role="group" aria-label="View" style="margin:0 0 10px">
+          <button class="chip" data-view="mail" aria-pressed="true">Email</button>
+          <button class="chip" data-view="page" aria-pressed="false">Page after click (experiment 3)</button>
+        </div>
+        <div class="mail" id="viewmail" aria-live="polite">
+          <h2>2 new listings in your saved searches</h2>
+          <div class="search">Cars, Honda, Civic</div>
+          <div class="filters" id="filters"></div>
+          <div class="cards">
+            <div class="car"><div class="ph">photo</div><div class="b"><span class="pr">PLN 52,400</span><span class="nm">Honda Civic 1.8 i-VTEC</span><a>View listing</a></div></div>
+            <div class="car"><div class="ph">photo</div><div class="b"><span class="pr">PLN 38,990</span><span class="nm">Honda Civic 1.4 Comfort</span><a>View listing</a></div></div>
+          </div>
+          <div class="nmblock">
+            <div class="lab" id="nmlabel"></div>
+            <div class="car"><div class="ph">photo</div><div class="b"><span class="badge" id="promobadge">Promoted</span><span class="pr" id="nmprice"></span><span class="nm" id="nmcar"></span><a>View listing</a></div></div>
+            <a class="optout" style="color:var(--accent);font-weight:600">See more listings like this</a>
+            <a class="optout">Don't show near matches</a>
+          </div>
+          <span class="btn">See all new listings</span>
+          <span class="caption">You can turn off notifications for this saved search</span>
+        </div>
+        <div class="mail" id="viewpage" hidden style="align-items:stretch;text-align:left">
+          <h2 style="max-width:none">New listings: Honda Civic</h2>
+          <div class="filters" id="filters2" style="justify-content:flex-start"></div>
+          <div class="car" style="flex-direction:row"><div class="ph" style="width:96px;height:auto;flex:none">photo</div><div class="b"><span class="pr">PLN 52,400</span><span class="nm">Honda Civic 1.8 i-VTEC</span></div></div>
+          <div class="car" style="flex-direction:row"><div class="ph" style="width:96px;height:auto;flex:none">photo</div><div class="b"><span class="pr">PLN 38,990</span><span class="nm">Honda Civic 1.4 Comfort</span></div></div>
+          <div class="car" style="flex-direction:row"><div class="ph" style="width:96px;height:auto;flex:none">photo</div><div class="b"><span class="pr">PLN 47,300</span><span class="nm">Honda Civic 1.5 Turbo</span></div></div>
+          <div class="caption" style="text-align:center;border-top:1px solid var(--line);padding-top:10px">These are all the new listings that match your criteria</div>
+          <div class="nmblock">
+            <div class="lab" id="nmlabel2"></div>
+            <div class="car"><div class="ph">photo</div><div class="b"><span class="badge" id="promobadge2">Promoted</span><span class="pr" id="nmprice2"></span><span class="nm" id="nmcar2"></span></div></div>
+            <a class="optout">Don't show near matches</a>
+          </div>
+        </div>
+        <p class="caption" style="margin-top:8px">The change is one block below the usual listings. The "Don't show near matches" link turns off only this block, not the whole digest, and the same option is in account preferences. Listings, prices and photos are illustrative. The user sees either the non-promoted or the promoted variant (marked "Promoted"). Experiment 2 decides which works better. The page view after the click shows the block from experiment 3 (at the end of the list, only for people with a near-miss).</p>
+      </div>
+
+      <div class="card" id="mdl-a"></div>
+    </div>
+
+    <aside class="console" aria-label="What happens in Braze">
+      <h3>What happens in Braze</h3>
+      <div class="user"><b>Test user.</b> Saved search: Honda Civic, mileage up to 100,000 km, price up to PLN 65,000, year from 2015, within 50 km of Warsaw. Digest consent: yes.</div>
+      <ol class="flow" id="flow"></ol>
+      <div class="detail" id="detail"></div>
+      <p class="caption">Flow diagram (Canvas), not a screenshot.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ A2 ============ -->
+<section class="screen" id="a2">
+  <div class="eyebrow">CAMPAIGN 3 · DELIVERY AND RISKS</div>
+  <h1>What has to be delivered, what can go wrong and how we measure</h1>
+  <div class="blk">
+    <div class="side"><span class="tag">Delivery</span><p>What has to happen for the campaign to launch.</p></div>
+    <div class="main"><ul class="tight">
+      <li>A listings catalog in Braze updated via API, and the user's saved search as flat attributes (one main search, with a search ID). A selection is limited to 10 filters, so we use the most important hard filters.</li>
+      <li>A "contact" event (phone reveal, chat message) from Otomoto to Braze, to measure incrementality.</li>
+      <li>The "See more listings like this" link is today's digest link with one range parameter raised (e.g. mileage up to 115,000 instead of 100,000). It needs no changes on the results page.</li>
+      <li>Monitoring the share of empty selections: a selection with a disallowed Liquid tag returns zero listings without an error.</li>
+      <li>A user with several saved searches gets a near-miss for only one of them: the one they open most often.</li>
+      <li>The "has near-miss" flag (a listing within the threshold exists) is calculated daily by Otomoto for every recipient, holdout included, independently of the Braze flow. It is needed before randomisation.</li>
+    </ul></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Risks</span><p>And how we limit them.</p></div>
+    <div class="main"><div class="scroll"><table>
+      <tr><th>Risk</th><th>Mitigation</th></tr>
+      <tr><td>Cannibalisation: the near-miss takes contacts from the regular listings</td><td>We measure total contacts for everyone assigned, so cannibalisation counts itself. Contacts from exact matches are tracked as well.</td></tr>
+      <tr><td>Near-miss seen as noise</td><td>The "Don't show near matches" link and its click rate as a guardrail. Only one filter at a time, with a threshold set separately for each filter.</td></tr>
+      <tr><td>Novelty effect inflates the first week</td><td>We report the first week separately and base the decision on the second. The test runs 2–4 weeks.</td></tr>
+    </table></div></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Metrics</span><p>How we will know it works.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Primary</dt><dd>Share of users with at least one seller contact in the second week after assignment (days 8–14), incremental versus the holdout.</dd>
+      <dt>Secondary</dt><dd>Clicks on the near-miss block, listing views from the digest.</dd>
+      <dt>Guardrails</dt><dd>Contacts from exact matches, unsubscribes, "don't show" clicks, deleted saved searches.</dd>
+    </dl></div>
+  </div>
+  <div class="blk">
+    <div class="side"><span class="tag">Measuring incrementality</span><p>Can we honestly separate the campaign's effect from what would have happened anyway.</p></div>
+    <div class="main"><dl class="rows">
+      <dt>Randomisation</dt><dd>At user level, after entry into the campaign and before the listing is shown, among people with a near-miss available. Assignment is permanent.</dd>
+      <dt>Control group</dt><dd>A holdout with the regular digest, no near-miss.</dd>
+      <dt>Analysis</dt><dd>Everyone assigned, not only those who clicked. That way we do not have to attribute contacts to the campaign, and cannibalisation is inside the result.</dd>
+      <dt>What could distort it</dt><dd>A contact is not a sale: we measure buyer activity, not cars sold. An extra contact with one listing may take it from another, so the total counts, not a single listing.</dd>
+      <dt>Assessment</dt><dd><b>Measurability high.</b> The largest sample of the three campaigns and the cleanest randomisation, although on our base we can detect a lift only from about 5.5%.</dd>
+    </dl></div>
+  </div>
+</section>
+
+<!-- ============ PART 2 ============ -->
+<section class="screen" id="p2">
+  <div class="eyebrow">PART 2 · CAMPAIGN 3</div>
+  <h1>The message and the experiments: what we send, what we test first and how we know it works</h1>
+  <nav class="seq" aria-label="Order in Part 2">
+    <a href="#p-msg"><b>1</b> Message</a><span aria-hidden="true">→</span>
+    <a href="#p-e1"><b>2</b> Experiment 1</a><span aria-hidden="true">→</span>
+    <a href="#p-e2"><b>3</b> Experiment 2</a><span aria-hidden="true">→</span>
+    <a href="#p-e3"><b>4</b> Experiment 3</a><span aria-hidden="true">→</span>
+    <a href="#p-q"><b>5</b> Further queue</a>
+  </nav>
+
+  <div class="blk" id="p-msg">
+    <div class="side"><span class="tag">1 · Message</span><p>What exactly the user receives.</p></div>
+    <div class="main">
+      <dl class="rows">
+        <dt>When</dt><dd>In the daily digest, at a fixed time.</dd>
+        <dt>Where</dt><dd>The core is email from saved searches, one block below the usual listings. In addition an in-app card, tested separately (test queue).</dd>
+        <dt>What</dt><dd>One near-miss, clearly marked. Below it a "See more listings like this" link, which opens the regular results page of the same search with one parameter relaxed (as in today's digest links), and "Don't show near matches".</dd>
+        <dt>How it sounds</dt><dd><div class="quote">Don't miss out: meets all your criteria except mileage (108,000 km instead of 100,000)</div></dd>
+        <dt>Which filter, when there are several options</dt><dd>Only one filter at a time. The order of checking is fixed in advance (hypothesis to test: mileage, price, distance, year). Braze checks the selections in turn and takes the first one that returns a listing within the threshold. Starting thresholds (hypotheses to test): mileage up to +15%, price up to +10%, distance up to +20 km, year up to −1. Which filter works best is decided by a test from the queue.</dd>
+        <dt>Which listing, when there are several</dt><dd>Among listings added since the last digest that fall within the threshold, we show the one closest to what the user asked for. For mileage that is the lowest mileage above the limit, for price the lowest price above the limit, for year the newest year below the limit. This is a plain sort in the selection by the relaxed filter's column. It does not work for distance, because a selection does not calculate distance from the user, so there we take the newest. Limiting to new listings means the same one does not come back every day. In experiment 2 the same sort works separately among promoted and non-promoted listings.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="blk" id="p-e1">
+    <div class="side"><span class="tag">2 · Experiment 1</span><p>Does a near-miss in the email increase contacts.</p></div>
+    <div class="main">
+      <dl class="rows">
+        <dt>Design</dt><dd>Two equal groups among people for whom Otomoto calculated that a near-miss is available: <b>holdout</b> (regular digest) and <b>near-miss</b> (digest with the block, without the "Promoted" label). We randomise after entry into the campaign, before the listing is shown. Assignment is fixed until the test ends.</dd>
+        <dt>Why first</dt><dd>Without an effect of the near-miss in email, the other tests (promoted, page, which filter) make no sense. Email is also the cheapest test: it needs no changes on the Otomoto side.</dd>
+        <dt>Primary metric</dt><dd>Share of users with at least one contact in the second week after assignment (days 8–14). We report the first week separately, because the novelty effect inflates it.</dd>
+        <dt>Guardrails</dt><dd>Contacts from exact matches (cannibalisation), unsubscribes, "don't show" clicks, deleted saved searches.</dd>
+        <dt>Hypothesis</dt><dd>A near-miss in email increases the share of users who contact a seller, and does not take contacts from exact matches.</dd>
+        <dt>Decision (written before launch)</dt><dd>Contacts increase, and unsubscribes and "don't show" clicks stay below a threshold set before launch: we roll out to everyone and move to experiments 2 and 3. No increase, or the threshold is exceeded: we stop in this form.</dd>
+        <dt>Sample</dt><dd>
+          <p class="caption" style="margin-bottom:8px">We size the test so that it rarely shows an effect that is not there and detects a real one in 4 cases out of 5. The baseline contact rate and the share of people with a near-miss are assumptions that the first measurement will replace with real numbers.</p>
+          <div class="calc">
+            <label>Baseline contact rate<select id="cb"><option value="0.03">3%</option><option value="0.06" selected>6%</option><option value="0.10">10%</option></select></label>
+            <label>Expected relative lift<select id="cu"><option value="0.03">3%</option><option value="0.05" selected>5%</option><option value="0.10">10%</option></select></label>
+            <label>Recipients with a near-miss in the threshold<select id="cc"><option value="0.3">30%</option><option value="0.5" selected>50%</option><option value="0.7">70%</option></select></label>
+          </div>
+          <div class="two" style="margin-top:12px">
+            <div><div class="caption">Needed per group</div><div class="out" id="n1"></div></div>
+            <div><div class="caption">Available per group (from 338k recipients)</div><div class="out" id="n2"></div></div>
+            <div><div class="caption">Smallest detectable relative lift</div><div class="out" id="n3"></div></div>
+          </div>
+          <p class="caption" style="margin-top:8px">People enter the test from their first digest, so most of the base is in it from the start. When the available sample is smaller than needed, we extend the test (new saved searches keep arriving) or accept that a smaller effect will not be detected. The novelty effect inflates the first days, so we report results week by week.</p></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="blk" id="p-e2">
+    <div class="side"><span class="tag">3 · Experiment 2</span><p>Does a near-miss with a promoted listing work as well as a non-promoted one.</p></div>
+    <div class="main">
+      <dl class="rows">
+        <dt>Design</dt><dd>Among people with a near-miss for whom Otomoto also has a promoted listing within the threshold (a flag calculated by Otomoto), we randomise half and half: a promoted near-miss (marked "Promoted") or a non-promoted one. Everyone else gets the non-promoted one.</dd>
+        <dt>Why</dt><dd>Promoted listings are extra value for sellers and for Otomoto, as long as buyers react to them as they do to regular ones.</dd>
+        <dt>Primary metric</dt><dd>The same as in experiment 1.</dd>
+        <dt>Hypothesis</dt><dd>The promoted near-miss is not worse than the non-promoted one by more than a margin set before launch (proposal: 10% relative).</dd>
+        <dt>Decision (written before launch)</dt><dd>Not worse: we show the promoted one where there is one, and the non-promoted one where there is not. Worse: we stay with the non-promoted one.</dd>
+        <dt>Sample</dt><dd>Assumption: about 30% of people with a near-miss have a promoted listing, i.e. about 25k people per group under the baseline assumptions. That lets us detect a difference of about 10% relative, so the 10% margin is what this test actually settles.</dd>
+        <dt>Caveat</dt><dd>The test covers listings that are already promoted, so it says nothing about listings that are not.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="blk" id="p-e3">
+    <div class="side"><span class="tag">4 · Experiment 3</span><p>Does the same block on the page after the click add contacts beyond the email alone.</p></div>
+    <div class="main">
+      <dl class="rows">
+        <dt>What we change</dt><dd>After a click on "See all new listings", the same near-miss with the same label appears at the end of the results list (view in the mock-up above).</dd>
+        <dt>Start condition</dt><dd>Experiment 1 showed an effect in email, experiment 2 is finished (one test at a time on the same segment), and Otomoto confirms that the results page can show the block to only some users, i.e. knows their group. If not, we run another test from the queue instead.</dd>
+        <dt>Design</dt><dd>Among people with a near-miss in the email we randomise half and half: the block on the page or no block. The email is identical in both arms, so comparing those who clicked is fair. The link carries the near-miss ID and the group.</dd>
+        <dt>Primary metric</dt><dd>Share of clickers with a contact within 7 days of the click.</dd>
+        <dt>Guardrails</dt><dd>Contacts from exact matches, scroll depth, unsubscribes.</dd>
+        <dt>Sample</dt><dd>Assumption: about 170k people with a near-miss in the email (after rollout to everyone eligible), 15% click rate, 15% baseline contact rate among clickers. That gives about 13k clickers per arm, enough to detect a lift from about 8.5% relative.</dd>
+        <dt>Caveat</dt><dd>This step goes beyond Braze itself, so in the brief it is an extension, not the core. To be confirmed with Otomoto: whether the results page allows such a block and whether it is their work.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="blk" id="p-q">
+    <div class="side"><span class="tag">5 · Further queue</span><p>What we test after experiments 1 to 3. One test at a time on the same segment.</p></div>
+    <div class="main">
+      <div class="scroll"><table>
+        <tr><th>#</th><th>Test</th><th>Question</th></tr>
+        <tr><td>4</td><td>Which filter to relax</td><td>Price, mileage, distance or year. Also gives data for behaviour-based rules</td></tr>
+        <tr><td>5</td><td>Deviation threshold</td><td>5%, 10% or 15%</td></tr>
+        <tr><td>6</td><td>Copy</td><td>A concrete delta or a generic line, a factual or an encouraging tone</td></tr>
+        <tr><td>7</td><td>Block position</td><td>In the digest and on the page</td></tr>
+        <tr><td>8</td><td>In-app card</td><td>A near-miss in the saved searches section of the app, for people active in the app</td></tr>
+        <tr><td>9</td><td>Who writes the copy</td><td>Rules or AI, last, once the campaign is confirmed to work</td></tr>
+      </table></div>
+      <p class="caption" style="margin-top:8px">Each test has its own hypothesis, primary metric and a decision rule written down before launch.</p>
+    </div>
+  </div>
+</section>
+
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var nf=new Intl.NumberFormat('en-US');
+  /* ---- near-miss data ---- */
+  var R={
+    km:{name:'mileage',car:'Honda Civic 1.8 i-VTEC Sport',price:'PLN 44,900',delta:'108,000 km instead of 100,000',thr:'up to +15%',pct:'+8%',
+        fil:['make = Honda','model = Civic','mileage ≤ km_limit','price ≤ 65,000','year ≥ 2015','distance ≤ 50 km'],
+        liq:'{% assign km_limit = custom_attribute.${saved_km_max} | times: 1.15 %}',hlIdx:2},
+    price:{name:'price',car:'Honda Civic 1.5 Turbo Sport',price:'PLN 68,500',delta:'PLN 68,500 instead of 65,000',thr:'up to +10%',pct:'+5.4%',
+        fil:['make = Honda','model = Civic','mileage ≤ 100,000','price ≤ price_limit','year ≥ 2015','distance ≤ 50 km'],
+        liq:'{% assign price_limit = custom_attribute.${saved_price_max} | times: 1.10 %}',hlIdx:3},
+    dist:{name:'distance',car:'Honda Civic 1.8 i-VTEC Elegance',price:'PLN 46,200',delta:'63 km instead of 50 km',thr:'up to +20 km',pct:'+13 km',
+        fil:['make = Honda','model = Civic','mileage ≤ 100,000','price ≤ 65,000','year ≥ 2015','distance ≤ dist_limit'],
+        liq:'{% assign dist_limit = custom_attribute.${saved_radius_km} | plus: 20 %}',hlIdx:5},
+    year:{name:'year',car:'Honda Civic 1.4 Comfort',price:'PLN 39,800',delta:'year 2014 instead of 2015',thr:'up to −1 year',pct:'−1 year',
+        fil:['make = Honda','model = Civic','mileage ≤ 100,000','price ≤ 65,000','year ≥ year_limit','distance ≤ 50 km'],
+        liq:'{% assign year_limit = custom_attribute.${saved_year_min} | minus: 1 %}',hlIdx:4}
+  };
+  var base={km:'Mileage: up to 100,000 km',price:'Price: up to PLN 65,000',year:'Year: from 2015',dist:'Distance: up to 50 km'};
+  var cur='km', promoted=true, step=0;
+
+  var STEPS=[
+    {t:'Canvas entry',s:'scheduled digest',
+     body:'The daily digest for users with a saved search, consent for this channel and a near-miss within the threshold. The "has near-miss" flag is calculated by Otomoto. People who turned the block off do not enter.',
+     inn:'saved search as attributes, digest consent, "has near-miss" flag, opt-out flag',out:'recipient list for today'},
+    {t:'Random split',s:'holdout / near-miss, fixed assignment',
+     body:'Two equal groups, randomised after entry into the campaign, before the user sees the listing. Assignment is permanent for the duration of the test.',
+     inn:'recipient',out:'group: holdout or near-miss'},
+    {t:'Near-miss selection',s:'hard filters unchanged, one soft filter relaxed',dyn:true},
+    {t:'Is there a listing?',s:'if not, regular digest',
+     body:'The flag from step 1 means a listing should exist. If the selection returns nothing anyway (e.g. the listing disappeared during the day), the user gets the regular digest and stays in their group.',
+     inn:'listing search result',out:'one listing or no block'},
+    {t:'Email message',s:'digest + near-miss block + "don\'t show" link',dyn2:true},
+    {t:'Measurement',s:'"contact" event from Otomoto, counted weekly',
+     body:'Otomoto sends Braze an event when the user reveals a phone number or writes in chat. Incrementality is calculated against the holdout, at user level.',
+     inn:'contact events, clicks, unsubscribes, "don\'t show" clicks',out:'primary metric and guardrails'}
+  ];
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+  function renderFlow(){
+    var h='';
+    STEPS.forEach(function(s,i){
+      h+='<li><button class="step" data-i="'+i+'"'+(i===step?' aria-current="step"':'')+'><span class="n">'+(i+1)+'</span><span class="t"><span>'+s.t+'</span><small>'+s.s+'</small></span></button></li>';
+    });
+    $('#flow').innerHTML=h;
+    $$('#flow .step').forEach(function(b){b.addEventListener('click',function(){step=+b.dataset.i;renderFlow();renderDetail()})});
+  }
+  function renderDetail(){
+    var s=STEPS[step], r=R[cur], h='';
+    if(s.dyn){
+      h='<div>Listing query filters (relaxed: <b class="hl">'+r.name+'</b>, '+r.thr+'):</div><pre class="code">'+
+        r.fil.map(function(f,i){return (i===r.hlIdx?'<span class="hl">'+esc(f)+'</span>':esc(f))}).join('\n')+'</pre>'+
+        '<div>The value of the relaxed filter is calculated by Liquid at send time and passed to the listing search:</div><pre class="code">'+esc(r.liq)+'</pre>'+
+        '<div class="io"><span>In</span><span>saved-search attributes</span><span>Out</span><span>listings sorted from closest to the limit, we take the first: <b class="hl">'+r.car+'</b>, '+r.price+'</span></div>';
+    } else if(s.dyn2){
+      h='<div>A block added to the digest. The label is built from the delta and the filter name:</div><pre class="code">Don\'t miss out: meets all your criteria except '+r.name+' (<span class="hl">'+r.delta+'</span>)</pre>'+
+        '<div class="io"><span>In</span><span>listing from the selection, user attributes</span><span>Out</span><span>a block with "See more listings like this" (same search, one parameter raised) and "Don\'t show near matches" (a click writes a flag to the profile) links</span></div>';
+    } else {
+      h='<div>'+s.body+'</div><div class="io"><span>In</span><span>'+s.inn+'</span><span>Out</span><span>'+s.out+'</span></div>';
+    }
+    $('#detail').innerHTML=h;
+  }
+  function renderMail(){
+    var r=R[cur];
+    $('#filters').innerHTML=['km','price','year','dist'].map(function(k){
+      return k===cur?'<span class="relaxed">'+base[k]+' (relaxed in the block below)</span>':'<span>'+base[k]+'</span>'}).join('');
+    $('#nmlabel').textContent='Don\'t miss out: meets all your criteria except '+r.name+' ('+r.delta+')';
+    $('#nmprice').textContent=r.price; $('#nmcar').textContent=r.car;
+    $('#promobadge').hidden=!promoted;
+    $('#nmlabel2').textContent=$('#nmlabel').textContent;$('#nmprice2').textContent=r.price;$('#nmcar2').textContent=r.car;$('#promobadge2').hidden=!promoted;
+    $('#filters2').innerHTML=$('#filters').innerHTML;
+  }
+  $$('[data-relax]').forEach(function(b){b.addEventListener('click',function(){
+    cur=b.dataset.relax; $$('[data-relax]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+    renderMail(); renderDetail();})});
+  $$('[data-view]').forEach(function(b){b.addEventListener('click',function(){var pg=b.dataset.view==='page';$('#viewmail').hidden=pg;$('#viewpage').hidden=!pg;$$('[data-view]').forEach(function(x){x.setAttribute('aria-pressed',x===b)})})});
+  $('#promo').addEventListener('click',function(){promoted=!promoted;this.setAttribute('aria-pressed',promoted);renderMail()});
+
+  function pct(x){return (x*100).toLocaleString('en-US',{maximumFractionDigits:1})+'%'}
+  var USERS=16100000;
+  /* ---- sample size ---- */
+  function nPer(p,rel){var d=p*rel, q=p+d, z=1.959964+0.841621; return Math.ceil(z*z*(p*(1-p)+q*(1-q))/(d*d))}
+  function renderN(){
+    var p=+$('#cb').value, u=+$('#cu').value, c=+$('#cc').value, avail=Math.floor(338100*c/2), lo=0.001, hi=2;
+    $('#n1').textContent=nf.format(nPer(p,u));
+    $('#n2').textContent=nf.format(avail);
+    for(var k=0;k<40;k++){var mid=(lo+hi)/2; if(nPer(p,mid)<=avail) hi=mid; else lo=mid}
+    $('#n3').textContent='+'+(hi*100).toLocaleString('en-US',{maximumFractionDigits:1})+'%';
+  }
+  ['cb','cu','cc'].forEach(function(id){$('#'+id).addEventListener('change',renderN)});
+
+  renderFlow(); renderDetail(); renderMail(); renderN();
+
+  /* ---- generic console ---- */
+  function mkConsole(flowId,detailId,steps,getBody){
+    var st=0;
+    function draw(){
+      $(flowId).innerHTML=steps.map(function(x,i){return '<li><button class="step" data-i="'+i+'"'+(i===st?' aria-current="step"':'')+'><span class="n">'+(i+1)+'</span><span class="t"><span>'+x.t+'</span><small>'+x.s+'</small></span></button></li>'}).join('');
+      $$(flowId+' .step').forEach(function(b){b.addEventListener('click',function(){st=+b.dataset.i;draw();body()})});
+      body();
+    }
+    function body(){var x=steps[st];var b=getBody(x,st);
+      $(detailId).innerHTML='<div>'+b.text+'</div>'+(b.code?'<pre class="code">'+b.code+'</pre>':'')+'<div class="io"><span>In</span><span>'+b.inn+'</span><span>Out</span><span>'+b.out+'</span></div>'}
+    draw();
+    return {redraw:body};
+  }
+  function setChips(sel,attr,cb){$$(sel).forEach(function(b){b.addEventListener('click',function(){$$(sel).forEach(function(x){x.setAttribute('aria-pressed',x===b)});cb(b.dataset[attr])})})}
+
+  /* ---- Campaign 1 ---- */
+  var DX={
+    price:{n:'price clearly above the median of similar listings',path:'price tip, no promotion offer',
+      t:'Your price is higher than in similar listings',b:'Your Honda Civic 1.8: PLN 52,400. Median of similar listings: PLN 47,800. Your listing expires in 7 days. Consider adjusting your price.',btn:'Change price',note:'One cut at a time, calculated against the median. No promotion offer, because promoting an inflated price will not deliver.'},
+    ok:{n:'price at or below the median',path:'promotion offer',
+      t:'Your listing expires in 7 days',b:'Make your Honda Civic 1.8 stand out from other listings for the final days, so buyers see it first. Sold? End your listing.',btn:'See promotion options',note:'The only path with direct revenue. The price is not in the message, because on this path it is not a problem. The line "Sold? End your listing" protects those who sold the car but did not mark it on the site.'}
+  };
+  var dx='price';
+  var bsteps=[
+    {t:'Canvas entry',s:'7 days to listing expiry'},
+    {t:'Random split',s:'message / control, fixed assignment'},
+    {t:'Price vs median',s:'calculated by Otomoto, Braze receives the result'},
+    {t:'Message',s:'email, in-app as a supplement'},
+    {t:'Exits',s:'sold, deleted, promoted'},
+    {t:'Measurement',s:'promotion purchase or price change in 7 days'}];
+  var bcon=mkConsole('#bflow','#bdetail',bsteps,function(x,i){
+    var d=DX[dx];
+    if(i===0)return{text:'The trigger is 7 days to expiry. If private listings have no fixed expiry date, the trigger is X days after publication (to be confirmed with Otomoto).',inn:'listing expiry date and status',out:'private listings to review'};
+    if(i===1)return{text:'A random split after entry into the campaign, before we check the price. One listing, one decision, permanent assignment. The control group gets no message.',inn:'listing at the expiry threshold',out:'message or control'};
+    if(i===2)return{text:'Otomoto calculates daily the listing price against the median of similar listings (same model, year, mileage) and passes the result to Braze as an attribute. Braze calculates nothing.',code:'price_vs_median = '+(dx==='price'?'clearly_above':'in_range'),inn:'price and data on similar listings',out:'one of two values'};
+    if(i===3)return{text:'Chosen path: <b class="hl">'+d.path+'</b>. One message per listing. Email is the core, and an in-app message when the seller opens "My listings" is a supplement.',inn:'price attribute, listing data',out:'content with listing data (price, median)'};
+    if(i===4)return{text:'A sold, deleted or already promoted listing ends the flow.',inn:'listing status events',out:'exit from the flow'};
+    return{text:'Incrementality is calculated at listing level against the group with no message, separately for each path: promotion purchase (promotion path) and price change (price path).',inn:'promotion purchase events, price changes, contacts',out:'primary metric and guardrails'};
+  });
+  function drawDx(){
+    var d=DX[dx];
+    $('#dxmsg').innerHTML='<div class="mt">'+d.t+'</div><div class="mb">'+d.b+'</div><div><span class="btn" style="display:inline-block">'+d.btn+'</span></div><div class="mb2">'+d.note+'</div>';
+    bcon.redraw();
+  }
+  setChips('[data-dx]','dx',function(v){dx=v;drawDx()});
+  drawDx();
+
+  /* ---- Campaign 2 ---- */
+  var cauto='no';
+  var csteps=[
+    {t:'Canvas entry',s:'X days to expiry of dealer listings'},
+    {t:'Must the dealer act?',s:'auto-renewal or promotion included in plan'},
+    {t:'Car selection',s:'demand to supply, price in range, low exposure'},
+    {t:'Split',s:'message / dealer control group'},
+    {t:'Message',s:'email and panel, one per dealer'},
+    {t:'Measurement',s:'promotion purchase in 7 days'}];
+  var ccon=mkConsole('#cflow','#cdetail',csteps,function(x,i){
+    if(i===0)return{text:'The trigger is "X days to expiry", not a fixed 7 days. X is a hypothesis and the first test, because 37 and 40 days are average activity times, not the listing validity period.',inn:'expiry dates of dealer listings',out:'dealers with expiring listings'};
+    if(i===1)return{text:cauto==='yes'?'This dealer has auto-renewal: <b class="hl">exits the flow</b>, because expiry is not a decision moment for them.':'The dealer has to act themselves, so they stay in the flow.',inn:'attribute: plan and auto-renewal',out:cauto==='yes'?'exit':'continue'};
+    if(i===2)return{text:'The Braze catalog has a column with the demand-to-competing-listings indicator (calculated by Otomoto). We select the dealer\'s cars above the threshold, with a price in range and low current exposure. At most 3 cars.',code:'demand_to_supply ≥ threshold\nprice_clearly_above_median = false\nexposure = low',inn:'dealer listings catalog',out:'up to 3 cars with a demand rationale'};
+    if(i===3)return{text:'A random split of dealers into those who get the message and a control group (dealer level, not car level).',inn:'dealers after car selection',out:'message or nothing'};
+    if(i===4)return{text:'One message per dealer, at most one per week. Email and a message in the panel. For large accounts an alert to the account manager.',inn:'list of cars, dealer name',out:'content with the car list and the package offer'};
+    return{text:'Incremental promotion purchases versus the group with no message, renewals separately. Guardrails: unsubscribes, messages per dealer.',inn:'promotion purchase and renewal events',out:'primary metric and guardrails'};
+  });
+  function drawC(){
+    $('#cmsg').innerHTML=cauto==='yes'?'<div class="none">The dealer has auto-renewal, so they get no message.</div>':
+      '<div class="mt">3 of your cars are in demand right now, and their listings expire in 7 days</div>'+
+      '<div class="row"><span>Honda Civic 1.8 i-VTEC</span><span class="pill">high demand, little competition</span></div>'+
+      '<div class="row"><span>Toyota Corolla 1.6</span><span class="pill">high demand</span></div>'+
+      '<div class="row"><span>Skoda Octavia 2.0 TDI</span><span class="pill">high demand, high competition</span></div>'+
+      '<div><span class="btn" style="display:inline-block">Renew and promote</span></div>';
+    ccon.redraw();
+  }
+  setChips('[data-cd]','cd',function(v){cauto=v;drawC()});
+  drawC();
+
+
+  /* ---- potential model (editable) ---- */
+  function mkModel(id,cfg){
+    var host=$('#'+id), sc=1, p={};
+    host.innerHTML='<h3>'+cfg.title+'</h3>'+
+      '<div class="chips" role="group" aria-label="Scenario" style="margin:10px 0 12px">'+['Cautious','Base','Optimistic'].map(function(n,i){return '<button class="chip" data-i="'+i+'" aria-pressed="'+(i===1)+'">'+n+'</button>'}).join('')+'</div>'+
+      '<div class="big" data-r="head"></div><p class="caption" data-r="sub" style="margin-top:4px"></p>'+
+      '<div class="weak" style="margin-top:12px"><b>Weakest link:</b> '+cfg.weak+'</div>'+
+      (cfg.note?'<p style="margin-top:10px;font-size:14px">'+cfg.note+'</p>':'')+
+      '<details style="margin-top:12px"><summary>Show the model and enter your own assumptions</summary><div>'+
+      '<p class="caption">Illustrative assumptions, not Otomoto data. Change any value to see your own result.</p>'+
+      '<div class="mdl-grid">'+cfg.params.map(function(q){return '<label>'+q.label+'<input type="number" step="any" data-k="'+q.k+'" inputmode="decimal"></label>'}).join('')+'</div>'+
+      '<div class="mdl-res" data-r="res"></div></div></details>';
+    function inputs(){return $$('input[data-k]',host)}
+    function load(){cfg.params.forEach(function(q){p[q.k]=cfg.scen[sc][q.k]});inputs().forEach(function(inp){var q=cfg.params.filter(function(x){return x.k===inp.dataset.k})[0];inp.value=q.t==='pct'?+(p[q.k]*100).toFixed(2):p[q.k]})}
+    function read(){inputs().forEach(function(inp){var q=cfg.params.filter(function(x){return x.k===inp.dataset.k})[0];var v=parseFloat(String(inp.value).replace(',','.'));if(!isNaN(v))p[q.k]=q.t==='pct'?v/100:v})}
+    function upd(){var r=cfg.calc(p);$('[data-r="head"]',host).textContent=r.head;$('[data-r="sub"]',host).textContent=r.sub;$('[data-r="res"]',host).innerHTML=r.res;$$('.chip',host).forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.i===sc)})}
+    $$('.chip',host).forEach(function(b){b.addEventListener('click',function(){sc=+b.dataset.i;load();upd()})});
+    inputs().forEach(function(inp){inp.addEventListener('input',function(){read();upd()})});
+    load();upd();
+  }
+  mkModel('mdl-a',{
+    title:'Potential: increase in buyer engagement',
+    weak:'the relative lift in contacts. We have no benchmark, which is why it is the first thing the experiment measures. The value of a contact is a working assumption, not accounting revenue. How to value it has to be agreed with Otomoto.',
+    note:'The monetary value of this campaign is inferred, not measured. The most important thing this campaign measures is whether buyers react to a listing that almost matches.',
+    params:[{k:'users',label:'Monthly users (m)',t:'num'},{k:'au',label:'Logged in (%)',t:'pct'},{k:'sv',label:'With a saved search (%)',t:'pct'},{k:'cons',label:'With digest consent (%)',t:'pct'},{k:'cov',label:'With a near-miss in the threshold (%)',t:'pct'},{k:'p7',label:'Contact per week (%)',t:'pct'},{k:'up',label:'Relative lift (%)',t:'pct'},{k:'val',label:'Value of a contact (PLN)',t:'num'}],
+    scen:[{users:16.1,au:.15,sv:.10,cons:.6,cov:.3,p7:.04,up:.03,val:4},{users:16.1,au:.2,sv:.15,cons:.7,cov:.5,p7:.06,up:.05,val:6},{users:16.1,au:.3,sv:.25,cons:.8,cov:.7,p7:.08,up:.08,val:8}],
+    calc:function(p){var N=p.users*1e6*p.au*p.sv*p.cons*p.cov, extra=N*p.p7*p.up, yr=extra*52*p.val;
+      return{head:'+'+pct(p.up)+' contacts among people with a near-miss',
+        sub:'From '+pct(p.p7)+' to '+pct(p.p7*(1+p.up))+' of users with a contact in a week, versus the group with no near-miss.',
+        res:nf.format(Math.round(N))+' people with a near-miss × '+pct(p.p7)+' × '+pct(p.up)+' × 52 weeks × PLN '+p.val+' = <b>about PLN '+nf.format(Math.round(yr/1000))+'k per year</b> (working value). Extra contacts: about '+nf.format(Math.round(extra))+' per week.'}}
+  });
+  mkModel('mdl-b',{
+    title:'Potential: revenue from promotions',
+    weak:'the incremental promotion purchase and its price, both without public data. The number of active private listings and the share unsold just before expiry are also assumptions (we only know about 500k active listings in total). Together with campaign 2, the listing-count assumptions fit within the 233.6k used cars on Otomoto.',
+    note:'This is a lower bound on value: the value of the price path (a price cut, a better chance of selling) is not priced.',
+    params:[{k:'stock',label:'Active private listings (k)',t:'num'},{k:'life',label:'Average active time (days)',t:'num'},{k:'left',label:'Unsold 7 days before the end (%)',t:'pct'},{k:'okp',label:'With price in range (%)',t:'pct'},{k:'reach',label:'Message reach (%)',t:'pct'},{k:'incr',label:'Incremental promotion purchase (%)',t:'pct'},{k:'price',label:'Promotion price (PLN)',t:'num'}],
+    scen:[{stock:80,life:37,left:.3,okp:.6,reach:.4,incr:.01,price:30},{stock:120,life:37,left:.4,okp:.7,reach:.5,incr:.03,price:50},{stock:160,life:37,left:.5,okp:.8,reach:.6,incr:.05,price:70}],
+    calc:function(p){var flow=p.stock*1e3*365/p.life, reached=flow*p.left*p.okp*p.reach, n=reached*p.incr, yr=n*p.price;
+      return{head:'+'+pct(p.incr)+' of listings reached by the offer are additionally promoted',
+        sub:'Above what they would have bought without the message. About '+pct(p.left*p.okp)+' of private listings get the promotion offer.',
+        res:nf.format(Math.round(reached))+' reached per year × '+pct(p.incr)+' × PLN '+p.price+' = <b>about PLN '+nf.format(Math.round(yr/1000))+'k per year</b>. Extra promotions: about '+nf.format(Math.round(n))+' per year.'}}
+  });
+  mkModel('mdl-c',{
+    title:'Potential: revenue from dealer promotions',
+    weak:'the incremental promotion purchase rate (some dealers would buy anyway) and the size of the "hot demand, price in range" segment. Apart from two values, everything is an assumption: 40 days average activity of a business listing (Otomoto data) and 233.6k used cars on Otomoto in total.',
+    note:'We do not count any effect on renewals themselves.',
+    params:[{k:'exp',label:'Expiring listings per month (k)',t:'num'},{k:'seg',label:'In the demand segment (%)',t:'pct'},{k:'reach',label:'Message reach (%)',t:'pct'},{k:'incr',label:'Incremental promotion purchase (%)',t:'pct'},{k:'price',label:'Promotion price (PLN)',t:'num'}],
+    scen:[{exp:45,seg:.05,reach:.3,incr:.02,price:30},{exp:70,seg:.10,reach:.45,incr:.04,price:50},{exp:95,seg:.15,reach:.6,incr:.08,price:70}],
+    calc:function(p){var reached=p.exp*1e3*p.seg*p.reach, n=reached*p.incr, yr=n*12*p.price;
+      return{head:'+'+pct(p.incr)+' of listings in the demand segment are additionally promoted',
+        sub:'Above what they would have bought without the message. The segment covers about '+pct(p.seg)+' of expiring listings.',
+        res:nf.format(Math.round(reached))+' reached per month × '+pct(p.incr)+' × PLN '+p.price+' × 12 = <b>about PLN '+nf.format(Math.round(yr/1000))+'k per year</b>. Extra promotions: about '+nf.format(Math.round(n))+' per month.'}}
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest&&e.target.closest('select')) return;
+    var ids=['m0','b1','b2','c1','c2','a1','a2','p2'],y=window.scrollY+80,i=0;
+    ids.forEach(function(id,k){if($('#'+id).offsetTop<=y)i=k});
+    if(e.key==='ArrowRight'&&i<ids.length-1){$('#'+ids[i+1]).scrollIntoView()}
+    if(e.key==='ArrowLeft'&&i>0){$('#'+ids[i-1]).scrollIntoView()}
+  });
+})();
+</script>
+
+</body></html>
